@@ -1,28 +1,23 @@
 package game.board
 
 
+import akka.actor.ActorRef
+import game.util.Utils
+
 import scala.collection.immutable.Set
+import scala.collection.mutable
 
 class BoardData {
 
-
   def conformMove(position:Int,lifter:Map[Int,Int]) :Int = if(lifter.contains(position)) lifter(position) else position
 
+  def genSnakePoints(startPoint: Set[Int]):Set[(Int,Int)] = startPoint.map(i => i -> Utils.random(1,i))
 
-  def random(start:Int,end:Int):Int = start + util.Random.nextInt(end-start)
+  def genLadderPoints(startPoint: Set[Int]):Set[(Int,Int)] = startPoint.map(i => i -> Utils.random(i,100))
 
+  def getPosition(key:ActorRef,map:mutable.HashMap[ActorRef,Int]):Int = if(map.contains(key)) map(key) else 1
 
-  def genSnakePoints(startPoint: Set[Int]):Set[(Int,Int)] = startPoint.map(i => i -> random(1,i))
+  def updatePosition(key:ActorRef,position:Int,map:mutable.HashMap[ActorRef,Int]): Option[Int] = map.put(key,position)
 
-
-  def genLadderPoints(startPoint: Set[Int]):Set[(Int,Int)] = startPoint.map(i => i -> random(i,100))
-
-
-  def random(count:Int): Set[Int] = {
-    var container = Set.empty[Int]
-    do container += util.Random.nextInt(100) while(container.size <= count-1)
-  }
-
-  def removeDuplicate(set1:Set[Int],set2:Set[Int]): Set[Int] = set1.intersect(set2)
-
+  
 }
