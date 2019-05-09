@@ -1,18 +1,19 @@
 package game.player
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, Props}
 import game.board.BoardController
 import game.util.Utils
 
 object Player{
-  def props(ref:ActorRef) :Props = Props(new Player(ref))
+  def props() :Props = Props[Player]
   case object RollDice
 }
 
-class Player(reporter:ActorRef) extends Actor {
+class Player() extends Actor {
   import Player._
 
   override def receive: Receive = {
-    case RollDice => reporter ! BoardController.Move(Utils.random(1,6))
+    case RollDice => sender() ! BoardController.Move(Utils.random(1,6))
   }
+
 }
