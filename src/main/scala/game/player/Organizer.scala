@@ -1,6 +1,6 @@
 package game.player
 
-import akka.actor.{Actor, ActorLogging, ActorRef, PoisonPill, Props}
+import akka.actor.{Actor, ActorRef, PoisonPill, Props}
 import akka.routing.{ActorRefRoutee, Broadcast, RoundRobinRoutingLogic, Router}
 import game.board.BoardController
 
@@ -11,7 +11,7 @@ object Organizer{
   case object ContinueGame
 }
 
-class Organizer extends Actor with ActorLogging{
+class Organizer extends Actor{
   import Organizer._
   var boardController:ActorRef =_
 
@@ -34,7 +34,6 @@ class Organizer extends Actor with ActorLogging{
   }
 
   def createMasterRouter(playerCount:Int): Router =  {
-
     val routees = Vector.fill(playerCount) {
       val r = context.actorOf(Player.props())
       context.watch(r)

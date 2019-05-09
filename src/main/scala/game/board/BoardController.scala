@@ -1,12 +1,11 @@
 package game.board
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import game.player.Organizer
 import game.util.Utils
 
-import scala.collection.mutable
-import scala.collection.immutable
 import scala.collection.immutable.Set
+import scala.collection.{immutable, mutable}
 
 //=================================================================
 //              Companion Object
@@ -21,7 +20,7 @@ object BoardController{
 //              class BoardController
 //=================================================================
 
-class BoardController(organizer:ActorRef) extends Actor with ActorLogging{
+class BoardController(organizer:ActorRef) extends Actor {
   import BoardController._
 
 //=================================================================
