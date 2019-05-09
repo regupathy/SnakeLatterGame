@@ -1,6 +1,6 @@
 package game.board
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import game.player.Organizer
 import game.util.Utils
 
@@ -13,7 +13,7 @@ import scala.collection.immutable.Set
 //=================================================================
 
 object BoardController{
-  def prop : Props = Props[BoardController]
+  def props(ref:ActorRef) : Props = Props(new BoardController(ref))
   case class Move(point:Int)
 }
 
@@ -21,14 +21,14 @@ object BoardController{
 //              class BoardController
 //=================================================================
 
-class BoardController(organizer:ActorRef) extends Actor {
+class BoardController(organizer:ActorRef) extends Actor with ActorLogging{
   import BoardController._
 
 //=================================================================
 //              Actor State
 //=================================================================
 
-  private[this] var playerPositions : mutable.HashMap[ActorRef, Int] = mutable.HashMap.empty[ActorRef,Int]
+  private[this] val playerPositions : mutable.HashMap[ActorRef, Int] = mutable.HashMap.empty[ActorRef,Int]
 
   private[this] var latterOnBoard = immutable.Map.empty[Int,Int]
 
@@ -40,7 +40,17 @@ class BoardController(organizer:ActorRef) extends Actor {
 
   override def preStart(): Unit = {
     latterOnBoard = latterOnBoard(5)
+    println("=====================================================")
+    println("            Latter on Board")
+    println()
+    println(latterOnBoard.toString())
     snakeOnBoard = snakeOnBoard(5)
+    println("=====================================================")
+    println("            Snake on Board")
+    println()
+    println(snakeOnBoard.toString())
+    println("=====================================================")
+    println()
   }
 
   //=================================================================
@@ -59,25 +69,29 @@ class BoardController(organizer:ActorRef) extends Actor {
     val player:ActorRef = sender()
     val currentPosition:Int = getPosition(player)
     var nextPosition = currentPosition+point
+    var playerGot: String = ""
     if (nextPosition <= 100) {
-      nextPosition = conformMove(nextPosition, snakeOnBoard)
-      nextPosition = conformMove(nextPosition, latterOnBoard)
-      updatePosition(player, nextPosition)
-      if (nextPosition == 100) Organizer.Win(player) else Organizer.ContinueGame
+      val nextPosition2 = conformMove(nextPosition, snakeOnBoard)
+        if(nextPosition != nextPosition2) playerGot=" caught by Snake"
+      val nextPosition3 = conformMove(nextPosition2, latterOnBoard)
+        if(nextPosition2 != nextPosition3) playerGot=" helped by Latter"
+      updatePosition(player, nextPosition3)
+      log(player.path.name,currentPosition,point,nextPosition3,playerGot)
+      if (nextPosition3 == 100) Organizer.Win(player) else Organizer.ContinueGame
     }else
       Organizer.ContinueGame
   }
 
   def latterOnBoard(count:Int):immutable.Map[Int,Int] = {
     val set:Set[Int] = Utils.random(count)
-    val uniqueSet = Utils.removeDuplicate(set,snakeOnBoard.keySet)
-    genLadderPoints(uniqueSet)
+    snakeOnBoard.keySet.foreach(a => if(set.contains(a)) set - a)
+    genLadderPoints(set)
   }
 
   def snakeOnBoard(count:Int):immutable.Map[Int,Int] = {
     val set:Set[Int] = Utils.random(count)
-    val uniqueSet = Utils.removeDuplicate(set,latterOnBoard.keySet)
-    genSnakePoints(uniqueSet)
+    latterOnBoard.keySet.foreach(a => if(set.contains(a)) set-a)
+    genSnakePoints(set)
   }
 
   //=================================================================
@@ -86,11 +100,17 @@ class BoardController(organizer:ActorRef) extends Actor {
 
   def conformMove(position:Int,lifter:Map[Int,Int]) :Int = if(lifter.contains(position)) lifter(position) else position
 
-  def genSnakePoints(startPoint: Set[Int]):Set[(Int,Int)] = startPoint.map(i => i -> Utils.random(1,i))
+  def genSnakePoints(startPoint: Set[Int]):Map[Int,Int] = startPoint.map(i => i -> Utils.random(1,i)).toMap
 
-  def genLadderPoints(startPoint: Set[Int]):Set[(Int,Int)] = startPoint.map(i => i -> Utils.random(i,100))
+  def genLadderPoints(startPoint: Set[Int]):Map[Int,Int] = startPoint.map(i => i -> Utils.random(i,100)).toMap
 
   def getPosition(key:ActorRef):Int = if(playerPositions.contains(key)) playerPositions(key) else 1
 
-  def updatePosition(key:ActorRef,position:Int): Option[Int] = playerPositions.put(key,position)
+  def updatePosition(player:ActorRef,position:Int): Option[Int] = {
+    playerPositions.put(player,position)
+  }
+
+  def log(name:String,cp:Int,point:Int,newpoint:Int,got:String): Unit ={
+    println("Player "+ name + " in " + cp +" got Dice point : " + point +" and moved to "+newpoint +" "+got)
+  }
 }
