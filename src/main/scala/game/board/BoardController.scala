@@ -110,6 +110,6 @@ class BoardController(organizer:ActorRef) extends Actor {
   }
 
   def log(name:String,cp:Int,point:Int,newpoint:Int,got:String): Unit ={
-    println("Player "+ name + " in " + cp +" got Dice point : " + point +" and moved to "+newpoint +" "+got)
+    println("Player "+ name + " stand in " + cp +" got Dice point : " + point +" and moved to "+newpoint +" "+got)
   }
 }
