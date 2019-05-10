@@ -4,7 +4,7 @@
 
 Three player will play this game 
 
-Latter and Snake place points are picked by randomly
+Latter and Snake place holders are picked by randomly
   ```
 =====================================================
             Latter on Board
